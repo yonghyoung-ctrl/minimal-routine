@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>오늘의 최소 루틴</title>
+<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+:root {
+  --bg: #FAF9F7;
+  --card: #FFFFFF;
+  --text: #1A1A1A;
+  --sub: #888888;
+  --line: #EEEEEE;
+  --accent: #FF6B35;
+  --accent-soft: #FFF1EA;
+  --good: #4CAF50;
+  --normal: #FFA726;
+  --bad: #EF5350;
+}
+body {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding: 24px 20px 60px;
+  max-width: 480px;
+  margin: 0 auto;
+  -webkit-font-smoothing: antialiased;
+}
+header {
+  margin-bottom: 32px;
+  padding-top: 12px;
+}
+.brand {
+  font-size: 13px;
+  color: var(--sub);
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+h1 {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  line-height: 1.3;
+}
+h1 .em { color: var(--accent); }
+.section {
+  margin-bottom: 28px;
+}
+.label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.label .num {
+  display: inline-flex;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--text);
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  align-items: center;
+  justify-content: center;
+}
+.condition-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+}
+.cond-btn {
+  background: var(--card);
+  border: 2px solid var(--line);
+  border-radius: 16px;
+  padding: 16px 8px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.cond-btn .emoji { font-size: 28px; }
+.cond-btn:active { transform: scale(0.97); }
+.cond-btn.active.good { border-color: var(--good); background: #F1F8F2; }
+.cond-btn.active.normal { border-color: var(--normal); background: #FFF7EC; }
+.cond-btn.active.bad { border-color: var(--bad); background: #FDEFEF; }
+textarea {
+  width: 100%;
+  background: var(--card);
+  border: 2px solid var(--line);
+  border-radius: 16px;
+  padding: 16px;
+  font-family: inherit;
+  font-size: 15px;
+  color: var(--text);
+  resize: none;
+  min-height: 130px;
+  line-height: 1.6;
+  transition: border-color 0.15s;
+}
+textarea:focus { outline: none; border-color: var(--accent); }
+textarea::placeholder { color: #B8B8B8; }
+.hint {
+  font-size: 12px;
+  color: var(--sub);
+  margin-top: 8px;
+  line-height: 1.5;
+}
+.cta {
+  width: 100%;
+  background: var(--text);
+  color: white;
+  border: none;
+  border-radius: 16px;
+  padding: 18px;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  letter-spacing: -0.3px;
+}
+.cta:active { transform: scale(0.98); }
+.cta:disabled { background: #CCCCCC; cursor: not-allowed; }
+.results {
+  margin-top: 32px;
+  display: none;
+}
+.results.show { display: block; animation: fadeIn 0.4s ease; }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.result-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+.result-header .vibe {
+  font-size: 13px;
+  color: var(--sub);
+  margin-bottom: 4px;
+}
+.result-header .title {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+}
+.result-header .title .em { color: var(--accent); }
+.routine-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 18px 20px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+.routine-card:active { transform: scale(0.99); }
+.routine-card.done {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+.routine-card.done .text { text-decoration: line-through; color: var(--sub); }
+.check {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid #DDD;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+.routine-card.done .check {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.routine-card.done .check::after {
+  content: '✓';
+  color: white;
+  font-size: 15px;
+  font-weight: 700;
+}
+.text-wrap { flex: 1; min-width: 0; }
+.routine-card .text {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  line-height: 1.4;
+}
+.routine-card .meta {
+  font-size: 12px;
+  color: var(--sub);
+  margin-top: 2px;
+}
+.footer-actions {
+  margin-top: 20px;
+  display: flex;
+  gap: 10px;
+}
+.footer-actions button {
+  flex: 1;
+  background: var(--card);
+  border: 1.5px solid var(--line);
+  color: var(--text);
+  border-radius: 14px;
+  padding: 14px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.footer-actions button:active { transform: scale(0.98); }
+.footer-actions .reset { background: transparent; }
+.summary {
+  text-align: center;
+  font-size: 13px;
+  color: var(--sub);
+  margin-top: 16px;
+}
+.summary .count { color: var(--accent); font-weight: 700; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">TODAY'S MINIMUM</div>
+  <h1>오늘의 <span class="em">최소 루틴</span><br>3가지를 찾아드려요</h1>
+</header>
+
+<div class="section">
+  <div class="label"><span class="num">1</span> 오늘 컨디션이 어때요?</div>
+  <div class="condition-grid">
+    <button class="cond-btn good" data-cond="good">
+      <span class="emoji">😊</span><span>좋음</span>
+    </button>
+    <button class="cond-btn normal active" data-cond="normal">
+      <span class="emoji">😐</span><span>보통</span>
+    </button>
+    <button class="cond-btn bad" data-cond="bad">
+      <span class="emoji">😩</span><span>나쁨</span>
+    </button>
+  </div>
+</div>
+
+<div class="section">
+  <div class="label"><span class="num">2</span> 오늘 하고 싶은 일들</div>
+  <textarea id="todoInput" placeholder="예시)&#10;운동 1시간&#10;영어 공부&#10;프로젝트 마무리&#10;방 청소"></textarea>
+  <div class="hint">한 줄에 하나씩, 완벽하지 않아도 괜찮아요</div>
+</div>
+
+<button class="cta" id="generateBtn">최소 루틴 만들기</button>
+
+<div class="results" id="results">
+  <div class="result-header">
+    <div class="vibe" id="vibeText"></div>
+    <div class="title">오늘의 <span class="em">최소 3가지</span></div>
+  </div>
+  <div id="routineList"></div>
+  <div class="summary" id="summary"></div>
+  <div class="footer-actions">
+    <button class="reset" id="resetBtn">처음부터</button>
+    <button id="shareBtn">공유하기</button>
+  </div>
+</div>
+
+<script>
+let condition = 'normal';
+const condBtns = document.querySelectorAll('.cond-btn');
+condBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    condBtns.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    condition = btn.dataset.cond;
+  });
+});
+
+// 컨디션별 축소 비율 + 멘트
+const VIBES = {
+  good: { text: '컨디션 좋네요. 욕심 내봐도 괜찮아요 💪', factor: 1.0 },
+  normal: { text: '딱 할 만큼만, 그게 진짜 실행이에요 ✨', factor: 0.5 },
+  bad: { text: '오늘은 살아남기. 그것만으로 충분해요 🌱', factor: 0.2 }
+};
+
+// 키워드별 최소 변환 규칙
+const RULES = [
+  { keys: ['운동','헬스','조깅','달리기','러닝','요가','스트레칭'],
+    good: '운동 30분', normal: '스트레칭 5분', bad: '제자리에서 기지개 1번' },
+  { keys: ['영어','공부','학습','강의','인강','책','독서'],
+    good: '집중 학습 1시간', normal: '책/강의 10분', bad: '한 페이지만 펼치기' },
+  { keys: ['청소','정리','빨래','설거지'],
+    good: '방 전체 정리', normal: '책상 위 한 구석만', bad: '쓰레기 1개 버리기' },
+  { keys: ['프로젝트','업무','일','과제','보고서','코딩','개발'],
+    good: '핵심 업무 2시간 집중', normal: '가장 작은 단위 1개만', bad: '파일 열어보기' },
+  { keys: ['글','블로그','일기','글쓰기','작성'],
+    good: '글 한 편 완성', normal: '3줄만 쓰기', bad: '제목만 써보기' },
+  { keys: ['물','수분'],
+    good: '물 2L 마시기', normal: '물 한 컵', bad: '한 모금만' },
+  { keys: ['명상','마음','휴식'],
+    good: '명상 20분', normal: '눈 감고 3분', bad: '깊게 한 번 숨쉬기' },
+  { keys: ['산책','걷기','외출'],
+    good: '40분 산책', normal: '동네 한 바퀴', bad: '현관 밖 1분' },
+  { keys: ['연락','전화','메시지','답장'],
+    good: '밀린 연락 다 처리', normal: '한 명에게만 답장', bad: '읽음만 표시' },
+  { keys: ['요리','식사','밥','아침','저녁','점심'],
+    good: '제대로 된 한 끼', normal: '간단히 한 끼', bad: '뭐든 한 입' }
+];
+
+// 기본 보충 루틴 (할 일이 부족할 때)
+const FILLERS = {
+  good: ['물 2L 마시기', '30분 산책', '잠들기 전 책 10페이지'],
+  normal: ['물 한 컵 마시기', '5분 스트레칭', '오늘 좋았던 일 1개 적기'],
+  bad: ['이불 정리하기', '창문 5분 열어두기', '오늘 잘 버텼다고 말하기']
+};
+
+function transform(line, cond) {
+  const lower = line.toLowerCase().trim();
+  if (!lower) return null;
+  for (const rule of RULES) {
+    if (rule.keys.some(k => lower.includes(k))) {
+      return rule[cond];
+    }
+  }
+  // 매칭 안 되면 기본 변환
+  if (cond === 'good') return line;
+  if (cond === 'normal') return line + ' (10분만)';
+  return line + ' 시작만';
+}
+
+document.getElementById('generateBtn').addEventListener('click', () => {
+  const input = document.getElementById('todoInput').value;
+  const lines = input.split('\n').map(s => s.trim()).filter(Boolean);
+  if (lines.length === 0 && condition !== 'bad') {
+    alert('오늘 하고 싶은 일을 한 가지라도 적어주세요!');
+    return;
+  }
+
+  // 컨디션 좋으면 우선순위 높은 거 3개, 나쁘면 가장 쉬운 거
+  const transformed = lines.map(l => transform(l, condition)).filter(Boolean);
+  let picks = [];
+  if (condition === 'good') {
+    picks = transformed.slice(0, 3);
+  } else if (condition === 'normal') {
+    picks = transformed.slice(0, 2);
+  } else {
+    picks = transformed.slice(0, 1);
+  }
+  // 부족하면 필러로 채움
+  const fillers = FILLERS[condition];
+  let fi = 0;
+  while (picks.length < 3 && fi < fillers.length) {
+    if (!picks.includes(fillers[fi])) picks.push(fillers[fi]);
+    fi++;
+  }
+
+  renderResults(picks);
+});
+
+function renderResults(items) {
+  const vibe = VIBES[condition];
+  document.getElementById('vibeText').textContent = vibe.text;
+  const list = document.getElementById('routineList');
+  list.innerHTML = '';
+  items.forEach((item, i) => {
+    const card = document.createElement('div');
+    card.className = 'routine-card';
+    card.innerHTML = `
+      <div class="check"></div>
+      <div class="text-wrap">
+        <div class="text">${item}</div>
+        <div class="meta">No. ${i+1}</div>
+      </div>
+    `;
+    card.addEventListener('click', () => {
+      card.classList.toggle('done');
+      updateSummary();
+    });
+    list.appendChild(card);
+  });
+  updateSummary();
+  const r = document.getElementById('results');
+  r.classList.add('show');
+  setTimeout(() => r.scrollIntoView({behavior:'smooth', block:'start'}), 100);
+}
+
+function updateSummary() {
+  const total = document.querySelectorAll('.routine-card').length;
+  const done = document.querySelectorAll('.routine-card.done').length;
+  const s = document.getElementById('summary');
+  if (done === total && total > 0) {
+    s.innerHTML = `🎉 <span class="count">전부 완료!</span> 오늘 진짜 멋졌어요`;
+  } else {
+    s.innerHTML = `완료 <span class="count">${done}/${total}</span>`;
+  }
+}
+
+document.getElementById('resetBtn').addEventListener('click', () => {
+  document.getElementById('results').classList.remove('show');
+  document.getElementById('todoInput').value = '';
+  window.scrollTo({top: 0, behavior: 'smooth'});
+});
+
+document.getElementById('shareBtn').addEventListener('click', async () => {
+  const items = Array.from(document.querySelectorAll('.routine-card .text')).map(e => '· ' + e.textContent);
+  const text = `[오늘의 최소 루틴]\n${items.join('\n')}`;
+  if (navigator.share) {
+    try { await navigator.share({title: '오늘의 최소 루틴', text}); } catch(e) {}
+  } else {
+    navigator.clipboard.writeText(text);
+    alert('클립보드에 복사됐어요!');
+  }
+});
+</script>
+
+</body>
+</html>
