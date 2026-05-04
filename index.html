@@ -27,10 +27,13 @@ body {
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+.app-content.show {
+  display: block;
   padding: 24px 20px 60px;
   max-width: 480px;
   margin: 0 auto;
-  -webkit-font-smoothing: antialiased;
 }
 header {
   margin-bottom: 32px;
@@ -322,16 +325,80 @@ textarea::placeholder { color: #B8B8B8; }
 .history-item:last-child { border-bottom: none; }
 .history-item .date { color: var(--sub); font-size: 11px; margin-bottom: 2px; }
 .history-item .progress { color: var(--accent); font-weight: 700; margin-left: 6px; }
+
+/* Login Gate */
+.login-gate {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+  z-index: 100;
+}
+.login-gate.hidden { display: none; }
+.login-gate .logo {
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  color: var(--sub);
+  margin-bottom: 14px;
+  font-weight: 600;
+}
+.login-gate h2 {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  text-align: center;
+  line-height: 1.35;
+  margin-bottom: 14px;
+}
+.login-gate h2 .em { color: var(--accent); }
+.login-gate p {
+  font-size: 14px;
+  color: var(--sub);
+  text-align: center;
+  line-height: 1.6;
+  margin-bottom: 40px;
+  max-width: 320px;
+}
+.login-gate .google-btn {
+  font-size: 15px;
+  padding: 14px 22px 14px 18px;
+  border-radius: 14px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+}
+.login-gate .google-btn svg { width: 20px; height: 20px; }
+.login-gate .terms {
+  margin-top: 22px;
+  font-size: 11px;
+  color: var(--sub);
+  text-align: center;
+  line-height: 1.6;
+}
+.app-content { display: none; }
+.app-content.show { display: block; }
 </style>
 </head>
 <body>
 
-<div class="auth-bar" id="authBar">
-  <button class="google-btn" id="loginBtn">
-    <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"/><path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z"/><path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.211 35.091 26.715 36 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"/><path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303c-.792 2.237-2.231 4.166-4.087 5.571.001-.001.002-.001.003-.002l6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"/></svg>
-    Google로 로그인
+<!-- Login Gate (shown before login) -->
+<div class="login-gate" id="loginGate">
+  <div class="logo">TODAY'S MINIMUM</div>
+  <h2>오늘의<br><span class="em">최소 루틴</span></h2>
+  <p>컨디션에 맞는 작은 행동 3가지로<br>오늘 하루를 시작해보세요</p>
+  <button class="google-btn" id="gateLoginBtn">
+    <svg viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"/><path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z"/><path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.211 35.091 26.715 36 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"/><path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303c-.792 2.237-2.231 4.166-4.087 5.571.001-.001.002-.001.003-.002l6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"/></svg>
+    Google로 시작하기
   </button>
+  <div class="terms">시작하면 이용약관 및<br>개인정보 처리방침에 동의합니다</div>
 </div>
+
+<!-- App content (shown after login) -->
+<div class="app-content" id="appContent">
+
+<div class="auth-bar" id="authBar"></div>
 
 <header>
   <div class="brand">TODAY'S MINIMUM</div>
@@ -379,6 +446,8 @@ textarea::placeholder { color: #B8B8B8; }
   <div id="historyList"></div>
 </div>
 
+</div><!-- /app-content -->
+
 <script>
 // ===== FIREBASE =====
 const firebaseConfig = {
@@ -396,22 +465,27 @@ const fbDB = firebase.database();
 const googleProvider = new firebase.auth.GoogleAuthProvider();
 let currentUser = null;
 
-document.getElementById('loginBtn')?.addEventListener('click', async () => {
+async function doGoogleLogin() {
   try {
     await fbAuth.signInWithPopup(googleProvider);
   } catch(e) {
-    if (e.code === 'auth/popup-blocked' || e.code === 'auth/popup-closed-by-user') {
+    if (e.code === 'auth/popup-blocked' || e.code === 'auth/popup-closed-by-user' || e.code === 'auth/cancelled-popup-request') {
       try { await fbAuth.signInWithRedirect(googleProvider); } catch(_) {}
     } else {
       alert('로그인 실패: ' + e.message);
     }
   }
-});
+}
+document.getElementById('gateLoginBtn').addEventListener('click', doGoogleLogin);
 
 fbAuth.onAuthStateChanged(async (user) => {
   currentUser = user;
-  const bar = document.getElementById('authBar');
+  const gate = document.getElementById('loginGate');
+  const app = document.getElementById('appContent');
   if (user) {
+    gate.classList.add('hidden');
+    app.classList.add('show');
+    const bar = document.getElementById('authBar');
     bar.innerHTML = `
       <div class="user-chip">
         <img src="${user.photoURL || ''}" alt="">
@@ -421,16 +495,8 @@ fbAuth.onAuthStateChanged(async (user) => {
     document.getElementById('logoutBtn').addEventListener('click', () => fbAuth.signOut());
     await loadHistory();
   } else {
-    bar.innerHTML = `
-      <button class="google-btn" id="loginBtn">
-        <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"/><path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z"/><path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.211 35.091 26.715 36 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"/><path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303c-.792 2.237-2.231 4.166-4.087 5.571.001-.001.002-.001.003-.002l6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"/></svg>
-        Google로 로그인
-      </button>`;
-    document.getElementById('loginBtn').addEventListener('click', async () => {
-      try { await fbAuth.signInWithPopup(googleProvider); }
-      catch(e) { alert('로그인 실패: ' + e.message); }
-    });
-    document.getElementById('historySection').classList.remove('show');
+    gate.classList.remove('hidden');
+    app.classList.remove('show');
   }
 });
 
