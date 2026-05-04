@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>오늘의 최소 루틴</title>
 <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 :root {
@@ -236,9 +239,99 @@ textarea::placeholder { color: #B8B8B8; }
   margin-top: 16px;
 }
 .summary .count { color: var(--accent); font-weight: 700; }
+
+/* Auth UI */
+.auth-bar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-bottom: 16px;
+  min-height: 40px;
+}
+.google-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: white;
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  padding: 8px 14px 8px 12px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: #444;
+  cursor: pointer;
+  transition: all 0.15s;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+.google-btn:active { transform: scale(0.97); }
+.google-btn:hover { background: #FAFAFA; }
+.google-btn svg { flex-shrink: 0; }
+.user-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: white;
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  padding: 4px 12px 4px 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+.user-chip img {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.user-chip .name { max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.user-chip .logout {
+  background: transparent;
+  border: none;
+  color: var(--sub);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 4px 6px;
+  font-family: inherit;
+}
+.user-chip .logout:hover { color: var(--accent); }
+.history {
+  margin-top: 24px;
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 16px;
+  display: none;
+}
+.history.show { display: block; }
+.history h3 {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--sub);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+}
+.history-item {
+  font-size: 13px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+  color: var(--text);
+}
+.history-item:last-child { border-bottom: none; }
+.history-item .date { color: var(--sub); font-size: 11px; margin-bottom: 2px; }
+.history-item .progress { color: var(--accent); font-weight: 700; margin-left: 6px; }
 </style>
 </head>
 <body>
+
+<div class="auth-bar" id="authBar">
+  <button class="google-btn" id="loginBtn">
+    <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"/><path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z"/><path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.211 35.091 26.715 36 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"/><path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303c-.792 2.237-2.231 4.166-4.087 5.571.001-.001.002-.001.003-.002l6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"/></svg>
+    Google로 로그인
+  </button>
+</div>
 
 <header>
   <div class="brand">TODAY'S MINIMUM</div>
@@ -281,7 +374,105 @@ textarea::placeholder { color: #B8B8B8; }
   </div>
 </div>
 
+<div class="history" id="historySection">
+  <h3>📅 최근 기록</h3>
+  <div id="historyList"></div>
+</div>
+
 <script>
+// ===== FIREBASE =====
+const firebaseConfig = {
+  apiKey: "AIzaSyBzyzbltg61kfgNqaw8EGTKR5d2ulsGuIE",
+  authDomain: "miniroom-430f4.firebaseapp.com",
+  databaseURL: "https://miniroom-430f4-default-rtdb.firebaseio.com",
+  projectId: "miniroom-430f4",
+  storageBucket: "miniroom-430f4.firebasestorage.app",
+  messagingSenderId: "694515144300",
+  appId: "1:694515144300:web:bcfe225c9e0c2153f22a49"
+};
+firebase.initializeApp(firebaseConfig);
+const fbAuth = firebase.auth();
+const fbDB = firebase.database();
+const googleProvider = new firebase.auth.GoogleAuthProvider();
+let currentUser = null;
+
+document.getElementById('loginBtn')?.addEventListener('click', async () => {
+  try {
+    await fbAuth.signInWithPopup(googleProvider);
+  } catch(e) {
+    if (e.code === 'auth/popup-blocked' || e.code === 'auth/popup-closed-by-user') {
+      try { await fbAuth.signInWithRedirect(googleProvider); } catch(_) {}
+    } else {
+      alert('로그인 실패: ' + e.message);
+    }
+  }
+});
+
+fbAuth.onAuthStateChanged(async (user) => {
+  currentUser = user;
+  const bar = document.getElementById('authBar');
+  if (user) {
+    bar.innerHTML = `
+      <div class="user-chip">
+        <img src="${user.photoURL || ''}" alt="">
+        <span class="name">${user.displayName || '사용자'}</span>
+        <button class="logout" id="logoutBtn">로그아웃</button>
+      </div>`;
+    document.getElementById('logoutBtn').addEventListener('click', () => fbAuth.signOut());
+    await loadHistory();
+  } else {
+    bar.innerHTML = `
+      <button class="google-btn" id="loginBtn">
+        <svg width="16" height="16" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"/><path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z"/><path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.211 35.091 26.715 36 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"/><path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303c-.792 2.237-2.231 4.166-4.087 5.571.001-.001.002-.001.003-.002l6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"/></svg>
+        Google로 로그인
+      </button>`;
+    document.getElementById('loginBtn').addEventListener('click', async () => {
+      try { await fbAuth.signInWithPopup(googleProvider); }
+      catch(e) { alert('로그인 실패: ' + e.message); }
+    });
+    document.getElementById('historySection').classList.remove('show');
+  }
+});
+
+async function saveRoutine(items) {
+  if (!currentUser) return;
+  const today = new Date().toISOString().split('T')[0];
+  await fbDB.ref(`routines/${currentUser.uid}/${today}`).set({
+    condition,
+    items,
+    done: 0,
+    total: items.length,
+    timestamp: Date.now()
+  });
+}
+
+async function updateRoutineProgress() {
+  if (!currentUser) return;
+  const today = new Date().toISOString().split('T')[0];
+  const total = document.querySelectorAll('.routine-card').length;
+  const done = document.querySelectorAll('.routine-card.done').length;
+  await fbDB.ref(`routines/${currentUser.uid}/${today}`).update({ done, total });
+}
+
+async function loadHistory() {
+  if (!currentUser) return;
+  try {
+    const snap = await fbDB.ref(`routines/${currentUser.uid}`).orderByChild('timestamp').limitToLast(7).once('value');
+    const data = snap.val();
+    if (!data) { document.getElementById('historySection').classList.remove('show'); return; }
+    const entries = Object.entries(data).sort((a,b) => (b[1].timestamp||0) - (a[1].timestamp||0));
+    const list = document.getElementById('historyList');
+    list.innerHTML = entries.map(([date, r]) => {
+      const items = (r.items || []).map(i => `· ${i}`).join('<br>');
+      return `<div class="history-item">
+        <div class="date">${date} <span class="progress">${r.done||0}/${r.total||0}</span></div>
+        <div>${items}</div>
+      </div>`;
+    }).join('');
+    document.getElementById('historySection').classList.add('show');
+  } catch(e) { console.warn('History load fail', e); }
+}
+
 let condition = 'normal';
 const condBtns = document.querySelectorAll('.cond-btn');
 condBtns.forEach(btn => {
@@ -391,10 +582,12 @@ function renderResults(items) {
     card.addEventListener('click', () => {
       card.classList.toggle('done');
       updateSummary();
+      updateRoutineProgress();
     });
     list.appendChild(card);
   });
   updateSummary();
+  saveRoutine(items);
   const r = document.getElementById('results');
   r.classList.add('show');
   setTimeout(() => r.scrollIntoView({behavior:'smooth', block:'start'}), 100);
